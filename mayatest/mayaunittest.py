@@ -14,10 +14,11 @@ To write tests for this system you need to,
 Example usage:
 
 # test_sample.py
-from cmt.test import TestCase
+from mayaunittest import TestCase
+import maya.cmds as mc
 class SampleTests(TestCase):
     def test_create_sphere(self):
-        sphere = cmds.polySphere(n='mySphere')[0]
+        sphere = mc.polySphere(n='mySphere')[0]
         self.assertEqual('mySphere', sphere)
 
 # To run just this test case in Maya

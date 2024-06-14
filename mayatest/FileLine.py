@@ -1,4 +1,4 @@
-from PySide2 import QtCore, QtWidgets
+from mayatest.Qt import QtCore, QtWidgets
 
 import os
 
@@ -7,8 +7,7 @@ class FileLine(QtWidgets.QWidget):
     pathChanged = QtCore.Signal()
 
     def __init__(self, parent=None):
-        super(FileLine, self).__init__(parent)
-
+        super().__init__(parent)  # Use the modern super() syntax
         self.__path = None
 
         # Layout
@@ -17,12 +16,13 @@ class FileLine(QtWidgets.QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         # Widgets
-        self.line = QtWidgets.QLineEdit()
+        self.line = QtWidgets.QLineEdit(self)
         self.line.setReadOnly(True)
-        self.btn = QtWidgets.QPushButton()
+        self.btn = QtWidgets.QPushButton(self)
         self.btn.setFixedHeight(20)
-        self.btn.setIcon(self.btn.style().standardIcon(
-            QtWidgets.QStyle.SP_DirIcon))
+
+        dir_icon = QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.SP_DirIcon)
+        self.btn.setIcon(dir_icon)
 
         # Add Widgets
         main_layout.addWidget(self.line)

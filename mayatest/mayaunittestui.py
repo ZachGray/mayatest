@@ -19,16 +19,20 @@ import traceback
 import unittest
 import webbrowser
 
+
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 
-import PySide2
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from mayatest.Qt import QtGui, QtWidgets, QtCore
 
-import mayatest.mayaunittest as mayaunittest
+# from mayatest.Qt.QtCore import *
+# from mayatest.Qt.QtGui import *
+# from mayatest.Qt.QtWidgets import *
+
+from mayatest import mayaunittest as mayaunittest
 from mayatest.mayaunittest import new_scene
+
 from mayatest.FileLine import FileLine
+
 
 logger = logging.getLogger(__name__)
 
@@ -108,10 +112,10 @@ class BaseTreeNode(object):
         return ""
 
 
-class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QMainWindow):
+class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MayaTestRunnerDialog, self).__init__(*args, **kwargs)
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setWindowTitle("Maya Unit Test Runner")
         self.resize(1000, 600)
         self.rollback_importer = RollbackImporter()
@@ -119,68 +123,68 @@ class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QMainWindow):
         toolbar = self.addToolBar("Tools")
         action = toolbar.addAction("Run All Tests")
         action.setIcon(
-            QIcon(QPixmap(os.path.join(ICON_DIR, "cmt_run_all_tests.png"))))
+            QtGui.QIcon(QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_run_all_tests.png"))))
         action.triggered.connect(self.run_all_tests)
         action.setToolTip("Run all tests.")
 
         action = toolbar.addAction("Run Selected Tests")
         action.setIcon(
-            QIcon(QPixmap(os.path.join(ICON_DIR, "cmt_run_selected_tests.png")))
+            QtGui.QIcon(QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_run_selected_tests.png")))
         )
         action.setToolTip("Run all selected tests.")
         action.triggered.connect(self.run_selected_tests)
 
         action = toolbar.addAction("Run Failed Tests")
         action.setIcon(
-            QIcon(QPixmap(os.path.join(ICON_DIR, "cmt_run_failed_tests.png")))
+            QtGui.QIcon(QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_run_failed_tests.png")))
         )
         action.setToolTip("Run all failed tests.")
         action.triggered.connect(self.run_failed_tests)
 
         action = toolbar.addAction("Refresh Tests")
-        action.setIcon(QIcon(QPixmap(":/refresh.png")))
+        action.setIcon(QtGui.QIcon(QtGui.QPixmap(":/refresh.png")))
         action.setToolTip("Refresh the test list all failed tests.")
         action.triggered.connect(self.refresh_tests)
 
         self.module_line = FileLine()
-        toolbar.addWidget(QLabel('Module Test Path:'))
-        spacer = QSpacerItem(10, 10, QSizePolicy.Minimum,
-                             QSizePolicy.Expanding)
-        toolbar.addWidget(QLabel())
+        toolbar.addWidget(QtWidgets.QLabel('Module Test Path:'))
+        spacer = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum,
+                             QtWidgets.QSizePolicy.Expanding)
+        toolbar.addWidget(QtWidgets.QLabel())
         toolbar.addWidget(self.module_line)
 
-        widget = QWidget()
+        widget = QtWidgets.QWidget()
         self.setCentralWidget(widget)
-        vbox = QVBoxLayout(widget)
+        vbox = QtWidgets.QVBoxLayout(widget)
 
         # Settings
-        self.new_scene_checkbox = QCheckBox('New Scene Between Tests')
+        self.new_scene_checkbox = QtWidgets.QCheckBox('New Scene Between Tests')
         self.new_scene_checkbox.setChecked(mayaunittest.Settings.file_new)
         self.new_scene_checkbox.toggled.connect(mayaunittest.set_file_new)
         self.new_scene_checkbox.setToolTip(
             "Creates a new scene file after each test.")
 
-        self.buffer_checkbox = QCheckBox('Buffer Output')
+        self.buffer_checkbox = QtWidgets.QCheckBox('Buffer Output')
         self.buffer_checkbox.setChecked(mayaunittest.Settings.buffer_output)
         self.buffer_checkbox.toggled.connect(mayaunittest.set_buffer_output)
         self.buffer_checkbox.setToolTip(
             "Only display output during a failed test.")
 
-        self.new_scene_btn = QPushButton('New Scene')
+        self.new_scene_btn = QtWidgets.QPushButton('New Scene')
         self.new_scene_btn.clicked.connect(new_scene)
 
-        settings_layout = QHBoxLayout()
+        settings_layout = QtWidgets.QHBoxLayout()
         settings_layout.addWidget(self.buffer_checkbox)
         settings_layout.addWidget(self.new_scene_checkbox)
         settings_layout.addWidget(self.new_scene_btn)
 
         settings_layout.addStretch()
 
-        splitter = QSplitter(orientation=Qt.Horizontal)
-        self.test_view = QTreeView()
-        self.test_view.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        splitter = QtWidgets.QSplitter(orientation=QtCore.Qt.Horizontal)
+        self.test_view = QtWidgets.QTreeView()
+        self.test_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         splitter.addWidget(self.test_view)
-        self.output_console = QTextEdit()
+        self.output_console = QtWidgets.QTextEdit()
         self.output_console.setReadOnly(True)
         vbox.addLayout(settings_layout)
         splitter.addWidget(self.output_console)
@@ -207,7 +211,7 @@ class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QMainWindow):
         parent = root_node.parent()
         parent_idx = (
             self.model.createIndex(
-                parent.row(), 0, parent) if parent else QModelIndex()
+                parent.row(), 0, parent) if parent else QtCore.QModelIndex()
         )
         index = self.model.index(root_node.row(), 0, parent_idx)
         self.test_view.setExpanded(index, True)
@@ -280,7 +284,7 @@ class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QMainWindow):
         self.rollback_importer = RollbackImporter()
 
     def init_gui(self):
-        settings = QSettings('AutodeskMaya', 'Unit Test Runner')
+        settings = QtCore.QSettings('AutodeskMaya', 'Unit Test Runner')
 
         try:
             self.restoreGeometry(settings.value('geometry'))
@@ -301,20 +305,20 @@ class MayaTestRunnerDialog(MayaQWidgetBaseMixin, QMainWindow):
         _win = None
 
         # Save the module path and widget position
-        self.settings = QSettings("AutodeskMaya", "Unit Test Runner")
+        self.settings = QtCore.QSettings("AutodeskMaya", "Unit Test Runner")
         self.settings.setValue('module_path', self.module_line.path)
         self.settings.setValue("geometry", self.saveGeometry())
-        QWidget.closeEvent(self, event)
+        QtWidgets.QWidget.closeEvent(self, event)
 
 
 class TestCaptureStream(object):
     """Allows the output of the tests to be displayed in a QTextEdit."""
 
-    success_color = QColor(92, 184, 92)
-    fail_color = QColor(240, 173, 78)
-    error_color = QColor(217, 83, 79)
-    skip_color = QColor(88, 165, 204)
-    normal_color = QColor(200, 200, 200)
+    success_color = QtGui.QColor(92, 184, 92)
+    fail_color = QtGui.QColor(240, 173, 78)
+    error_color = QtGui.QColor(217, 83, 79)
+    skip_color = QtGui.QColor(88, 165, 204)
+    normal_color = QtGui.QColor(200, 200, 200)
 
     def __init__(self, text_edit):
         self.text_edit = text_edit
@@ -351,10 +355,10 @@ class TestStatus:
 class TestNode(BaseTreeNode):
     """A node representing a Test, TestCase, or TestSuite for display in a QTreeView."""
 
-    success_icon = QPixmap(os.path.join(ICON_DIR, "cmt_test_success.png"))
-    fail_icon = QPixmap(os.path.join(ICON_DIR, "cmt_test_fail.png"))
-    error_icon = QPixmap(os.path.join(ICON_DIR, "cmt_test_error.png"))
-    skip_icon = QPixmap(os.path.join(ICON_DIR, "cmt_test_skip.png"))
+    success_icon = QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_test_success.png"))
+    fail_icon = QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_test_fail.png"))
+    error_icon = QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_test_error.png"))
+    skip_icon = QtGui.QPixmap(os.path.join(ICON_DIR, "cmt_test_skip.png"))
 
     def __init__(self, test, parent=None):
         super(TestNode, self).__init__(parent)
@@ -426,7 +430,7 @@ class TestNode(BaseTreeNode):
         ][status]
 
 
-class TestTreeModel(QAbstractItemModel):
+class TestTreeModel(QtCore.QAbstractItemModel):
     """The model used to populate the test tree view."""
 
     def __init__(self, root, parent=None):
@@ -461,26 +465,26 @@ class TestTreeModel(QAbstractItemModel):
         if not index.isValid():
             return None
         node = index.internalPointer()
-        if role == Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole:
             return node.name()
-        elif role == Qt.DecorationRole:
+        elif role == QtCore.Qt.DecorationRole:
             return node.get_icon()
-        elif role == Qt.ToolTipRole:
+        elif role == QtCore.Qt.ToolTipRole:
             return node.tool_tip
 
-    def setData(self, index, value, role=Qt.EditRole):
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
         node = index.internalPointer()
 
         data_changed_kwargs = [index, index, []]
 
-        if role == Qt.EditRole:
+        if role == QtCore.Qt.EditRole:
             self.dataChanged.emit(*data_changed_kwargs)
-        if role == Qt.DecorationRole:
+        if role == QtCore.Qt.DecorationRole:
             node.status = value
             self.dataChanged.emit(*data_changed_kwargs)
             if node.parent() is not self._root_node:
                 self.setData(self.parent(index), value, role)
-        elif role == Qt.ToolTipRole:
+        elif role == QtCore.Qt.ToolTipRole:
             node.tool_tip = value
             self.dataChanged.emit(*data_changed_kwargs)
 
@@ -488,13 +492,13 @@ class TestTreeModel(QAbstractItemModel):
         return "Tests"
 
     def flags(self, index):
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def parent(self, index):
         node = index.internalPointer()
         parent_node = node.parent()
         if parent_node == self._root_node:
-            return QModelIndex()
+            return QtCore.QModelIndex()
         return self.createIndex(parent_node.row(), 0, parent_node)
 
     def index(self, row, column, parent):
@@ -507,11 +511,11 @@ class TestTreeModel(QAbstractItemModel):
         if child_item:
             return self.createIndex(row, column, child_item)
         else:
-            return QModelIndex()
+            return QtCore.QModelIndex()
 
     def get_index_of_node(self, node):
         if node is self._root_node:
-            return QModelIndex()
+            return QtCore.QModelIndex()
         return self.index(node.row(), 0, self.get_index_of_node(node.parent()))
 
     def run_tests(self, stream, test_suite):
@@ -534,8 +538,8 @@ class TestTreeModel(QAbstractItemModel):
         for test in result.successes:
             node = self.node_lookup[str(test)]
             index = self.get_index_of_node(node)
-            self.setData(index, "Test Passed", Qt.ToolTipRole)
-            self.setData(index, TestStatus.success, Qt.DecorationRole)
+            self.setData(index, "Test Passed", QtCore.Qt.ToolTipRole)
+            self.setData(index, TestStatus.success, QtCore.Qt.DecorationRole)
 
     def _set_test_result_data(self, test_list, status):
         """Store the test result data in model.
@@ -545,8 +549,8 @@ class TestTreeModel(QAbstractItemModel):
         for test, reason in test_list:
             node = self.node_lookup[str(test)]
             index = self.get_index_of_node(node)
-            self.setData(index, reason, Qt.ToolTipRole)
-            self.setData(index, status, Qt.DecorationRole)
+            self.setData(index, reason, QtCore.Qt.ToolTipRole)
+            self.setData(index, status, QtCore.Qt.DecorationRole)
 
 
 class RollbackImporter(object):
@@ -567,8 +571,16 @@ class RollbackImporter(object):
         """Creates an instance and installs as the global importer."""
         self.previous_modules = set(sys.modules.keys())
 
+    # def uninstall(self):
+    #     for modname in sys.modules.keys():
+    #         if modname not in self.previous_modules:
+    #             # Force reload when modname next imported
+    #             del (sys.modules[modname])
+    
     def uninstall(self):
-        for modname in sys.modules.keys():
-            if modname not in self.previous_modules:
-                # Force reload when modname next imported
-                del (sys.modules[modname])
+        # Collect module names to delete
+        to_delete = [modname for modname in sys.modules.keys() if modname not in self.previous_modules]
+
+        # Delete the collected module names from sys.modules
+        for modname in to_delete:
+            del sys.modules[modname]
