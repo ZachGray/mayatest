@@ -4,7 +4,7 @@ A tool to compare images in a directory and display them in a contact sheet.
 """
 
 import os
-import maya.api.OpenMayaUI as omui
+import maya.OpenMayaUI as omui
 # pylint: disable=no-name-in-module
 from mayatest.Qt import (
     QtCore,

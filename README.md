@@ -8,8 +8,15 @@ Requires pillow/PIL
 - Added image comparision utility using PIL
 - Added various utilities for determining screen location in maya.
 
+Use this decorator for any tests that require the UI 
+```python
+@unittest.skipUnless(om.MGlobal.mayaState() == 0, "Not running in Maya")
+    def test_example(self):
+        pass
+```
 
 
+### Vendored
 > https://github.com/abstractfactory/maya-capture
 Bundled a slightly modified version of capture.py to support plugin shapes
 https://github.com/mottosso/Qt.py/blob/master/Qt.py
