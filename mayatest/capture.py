@@ -2,6 +2,8 @@
 
 Playblasting with independent viewport, camera and display options
 
+Modified to allow plugin shapes to be toggled on and off 6/20/2024 - Zach Gray
+
 """
 
 import re
@@ -380,7 +382,14 @@ def apply_view(panel, **options):
     # Viewport options
     viewport_options = options.get("viewport_options", {})
     for key, value in viewport_options.items():
-        cmds.modelEditor(panel, edit=True, **{key: value})
+        try:
+            cmds.modelEditor(panel, edit=True, **{key: value})
+        except TypeError:
+            sys.stderr.write("Could not set viewport option: %s" % key)
+            try:
+                cmds.modelEditor(panel, edit=True, pluginObjects=True, **{key: value})
+            except TypeError:
+                sys.stderr.write("Could not set plugin display filter option: %s" % key)
 
     viewport2_options = options.get("viewport2_options", {})
     for key, value in viewport2_options.items():

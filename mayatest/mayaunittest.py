@@ -48,6 +48,29 @@ def new_scene():
     cmds.file(f=True, new=True)
 
 
+# import threading
+
+# def run_tests(directories=None, test=None, test_suite=None):
+#     """Run all the tests in the given paths.
+
+#     @param directories: A generator or list of paths containing tests to run.
+#     @param test: Optional name of a specific test to run.
+#     @param test_suite: Optional TestSuite to run.  If omitted, a TestSuite will be generated.
+#     """
+#     if test_suite is None:
+#         test_suite = get_tests(directories, test)
+
+#     def run_tests_in_thread():
+#         runner = unittest.TextTestRunner(verbosity=2, resultclass=TestResult)
+#         runner.failfast = False
+#         runner.buffer = Settings.buffer_output
+#         runner.run(test_suite)
+
+#     # Create a new thread to run the tests
+#     test_thread = threading.Thread(target=run_tests_in_thread)
+#     test_thread.start()
+#     test_thread.join()
+
 def run_tests(directories=None, test=None, test_suite=None):
     """Run all the tests in the given paths.
 
