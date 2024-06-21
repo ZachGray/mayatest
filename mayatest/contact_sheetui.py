@@ -4,18 +4,23 @@ A tool to compare images in a directory and display them in a contact sheet.
 """
 
 import os
+import maya.cmds as mc
 import maya.OpenMayaUI as omui
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
+
 # pylint: disable=no-name-in-module
 from mayatest.Qt import (
     QtCore,
     QtGui,
     QtWidgets,
     QtCompat,
-) 
+)
 from mayatest.image_utils import compare_images
 
 SORT_KEY = "ACTUAL"
 
+WORKSPACE_CTRL_NAME = 'ContactSheetWidgetWorkspaceControl'
+WIDGET_OBJECT_NAME = 'ContactSheetWidget'
 
 def maya_main_window():
     """
@@ -70,22 +75,20 @@ class CustomImageWidget(QtWidgets.QWidget):
         # Draw pixmap centered
         painter.drawPixmap(x_offset, y_offset, self.pixmap)
 
+class ContactSheetDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
+    def __init__(self, 
+                 image_dir,
+                 img_width=200,
+                 img_height=200,
+                 threshold=0.1,
+                 parent=None):
+        super(ContactSheetDialog, self).__init__(parent=parent)
 
-class ContactSheetDialog(QtWidgets.QDialog):
-    # def __init__(self, parent=maya_main_window()):
-    def __init__(
-        self,
-        image_dir,
-        img_width=200,
-        img_height=200,
-        threshold=0.1,
-        parent=maya_main_window(),
-    ):
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        super(ContactSheetDialog, self).__init__(parent)
         self.setWindowTitle("Contact Sheet")
         self.setMinimumSize(600, 400)
-        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        # self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
         self.img_width = img_width
         self.img_height = img_height
@@ -129,16 +132,26 @@ class ContactSheetDialog(QtWidgets.QDialog):
         main_layout.addLayout(button_layout)
 
     def create_connections(self):
-        self.close_btn.clicked.connect(self.close)
+        self.close_btn.clicked.connect(self.close_window)
+
+    def close_window(self):
+        # Close the workspace control
+        deleteInstances()
 
     def create_column_headers(self):
         # Create headers for 'Actual' and 'Expected'
         self.header_layout.addStretch()  # Add stretch before the label
         headers = ["Actual", "Expected"]
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setPointSize(10)  # Adjust font size as needed
+
         for header in headers:
             header_label = QtWidgets.QLabel(header)
             header_label.setFixedWidth(self.img_width)  # Set fixed width
             header_label.setAlignment(QtCore.Qt.AlignCenter)
+            header_label.setFont(font)  # Apply the bold and larger font
+
 
             # Add stretch to push headers to the right side
             self.header_layout.addWidget(header_label, alignment=QtCore.Qt.AlignCenter)
@@ -146,10 +159,19 @@ class ContactSheetDialog(QtWidgets.QDialog):
     def load_images(self):
         image_pairs = self.find_image_pairs(self.image_dir)
         if not image_pairs:
-            label = QtWidgets.QLabel("No image pairs found in the directory")
-            self.image_layout.addWidget(label, 0, 1, QtCore.Qt.AlignCenter)
+            label_text = QtWidgets.QLabel("No image pairs found in the directory")
+            self.image_layout.addWidget(label_text, 0, 1, QtCore.Qt.AlignCenter)
             return
 
+        # Function to get the pair_name
+        def get_pair_name(path):
+            base_name = os.path.basename(path)
+            if "_" in base_name:
+                pair_name = base_name.split("_")[0]
+            else:
+                pair_name = base_name  # If no underscore, use the whole basename
+            return pair_name
+        
         row = 0
         for pair in image_pairs:
             # Create the color indicator
@@ -168,9 +190,13 @@ class ContactSheetDialog(QtWidgets.QDialog):
             else:
                 color_indicator.setStyleSheet("background-color: none;")
 
-            label = QtWidgets.QLabel(os.path.basename(pair[0]).split("_")[0])
-            # Set a fixed width for the label to make it much smaller
-            label.setFixedWidth(50)
+            # Create a label with the basename of the image pair
+            pair_name = get_pair_name(pair[0])
+            label = QtWidgets.QLabel(f'<b>{pair_name}</b><br>({threshold:.2f}%)')
+
+            # Set text alignment for the label
+            label.setAlignment(QtCore.Qt.AlignCenter)
+
 
             # Add the color indicator to the layout
             self.image_layout.addWidget(color_indicator, row, 0)
@@ -222,7 +248,27 @@ class ContactSheetDialog(QtWidgets.QDialog):
                     image_files.remove(file2)
 
         return image_pairs
+    
+def deleteInstances():
+    for ctrlName in [WIDGET_OBJECT_NAME, WORKSPACE_CTRL_NAME]:
+        ctrl = omui.MQtUtil.findControl(ctrlName)
+        if ctrl:
+            widget = QtCompat.wrapInstance(int(ctrl), QtWidgets.QWidget)
+            widget.close()
+    try:
+        mc.deleteUI(WORKSPACE_CTRL_NAME)
+    except:
+        pass
 
+def show(image_dir, 
+         img_width=200,
+         img_height=200,
+         threshold=0.1):
+    deleteInstances()
+    global _DOCKWIDGET
+    _DOCKWIDGET = ContactSheetDialog(image_dir, img_width, img_height, threshold)
+    _DOCKWIDGET.setObjectName(WIDGET_OBJECT_NAME)
+    _DOCKWIDGET.show(dockable=False, dup=False)
 
 if __name__ == "__main__":
     #pylint: disable=E0601
@@ -231,13 +277,5 @@ if __name__ == "__main__":
     image_dir = "Z:/sb/touchpose/scripts/touchpose/tests/assets/reference_images/draw"
     threshold = 0.01
 
-    try:
-        contact_sheet_dialog.close()  # type: ignore
-        contact_sheet_dialog.deleteLater()  # type: ignore
-    except ValueError:
-        pass
+    show(image_dir, img_width, img_height, threshold)
 
-    contact_sheet_dialog = ContactSheetDialog(
-        image_dir, img_width, img_height, threshold
-    )
-    contact_sheet_dialog.show()
